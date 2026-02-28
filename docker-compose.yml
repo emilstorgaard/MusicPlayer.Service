@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  musicplayer-api:
+    container_name: music-player-service
+    build:
+      context: .
+      dockerfile: src/MusicPlayer.Api/Dockerfile
+    ports:
+      - '8280:8080'
+    volumes:
+      - ./Media:/app/Media
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+# Add ConnectionString til db

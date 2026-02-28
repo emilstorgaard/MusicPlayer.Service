@@ -1,0 +1,12 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="../MusicPlayerAPI/docker-compose.yaml" />
+    <File Path="Dockerfile" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/MusicPlayer.Api/MusicPlayer.Api.csproj" />
+    <Project Path="src/MusicPlayer.Application/MusicPlayer.Application.csproj" />
+    <Project Path="src/MusicPlayer.Domain/MusicPlayer.Domain.csproj" />
+    <Project Path="src/MusicPlayer.Infrastructure/MusicPlayer.Infrastructure.csproj" />
+  </Folder>
+</Solution>

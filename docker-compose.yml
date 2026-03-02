@@ -5,7 +5,7 @@ services:
     container_name: music-player-service
     build:
       context: .
-      dockerfile: src/MusicPlayer.Api/Dockerfile
+      dockerfile: ./Dockerfile
     ports:
       - '8381:8080'
     volumes:

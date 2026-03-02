@@ -7,9 +7,8 @@ services:
       context: .
       dockerfile: src/MusicPlayer.Api/Dockerfile
     ports:
-      - '8280:8080'
+      - '8381:8080'
     volumes:
       - ./Media:/app/Media
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-# Add ConnectionString til db

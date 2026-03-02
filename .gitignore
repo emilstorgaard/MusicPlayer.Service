@@ -3,8 +3,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
-# Ignore the songs directory
-/Media/
+# Ignore the Media directory
+src/MusicPlayer.Api/Media/Songs/*
+src/MusicPlayer.Api/Media/Images/*
+
+!src/MusicPlayer.Api/Media/Images/default.jpg
 
 # User-specific files
 *.rsuser

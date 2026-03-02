@@ -40,7 +40,7 @@ COPY --from=publish /app/publish .
 
 # Sørg for at Media mapperne findes i containeren, så din FileHelper ikke fejler
 USER root
-RUN mkdir -p /app/Media/Images && mkdir -p /app/Media/Songs && chmod -R 777 /app/Media && chown -R app:app /app/Media
+RUN mkdir -p /app/Media/Images && mkdir -p /app/Media/Songs && chown -R app:app /app/Media
 USER app
 
 ENTRYPOINT ["dotnet", "MusicPlayer.Api.dll"]

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using MusicPlayer.Api.Middleware;
 using MusicPlayer.Application.Configurations;
 using MusicPlayer.Application.Services;
 using MusicPlayer.Domain.Interfaces;
@@ -128,7 +129,7 @@ public class Program
         app.UseCors("AllowAllOrigins");
         app.UseAuthentication();
         app.UseAuthorization();
-        //app.UseMiddleware<ExceptionHandlingMiddleware>();
+        app.UseMiddleware<ExceptionHandlingMiddleware>();
         app.MapControllers();
     }
 }

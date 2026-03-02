@@ -9,6 +9,6 @@ services:
     ports:
       - '8381:8080'
     volumes:
-      - ./Media:/app/Media
+      - ./src/MusicPlayer.Api/Media:/app/Media
     environment:
       - ASPNETCORE_ENVIRONMENT=Production

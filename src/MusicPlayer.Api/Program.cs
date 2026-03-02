@@ -69,12 +69,14 @@ public class Program
         builder.Services.AddScoped<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IPlaylistRepository, PlaylistRepository>();
         builder.Services.AddScoped<ISongRepository, SongRepository>();
+        builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 
         builder.Services.AddScoped<AuthService>();
         builder.Services.AddScoped<JwtTokenService>();
         builder.Services.AddScoped<UserService>();
         builder.Services.AddScoped<PlaylistService>();
         builder.Services.AddScoped<SongService>();
+        builder.Services.AddScoped<SearchService>();
     }
 
     public static void ConfigureAuthentication(WebApplicationBuilder builder)

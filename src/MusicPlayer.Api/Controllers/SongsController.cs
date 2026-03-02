@@ -24,11 +24,17 @@ public class SongsController : ControllerBase
         return File(streamResult, "audio/mpeg", enableRangeProcessing: true);
     }
 
-    [HttpGet("cover/{*imagePath}")]
-    public IActionResult GetCoverImage(string imagePath)
+    [HttpGet("{id:int}/cover")]
+    public async Task<IActionResult> GetCoverImageById(int id)
     {
-        var coverImagePath = _songService.GetCoverImage(imagePath);
-        return PhysicalFile(coverImagePath, "image/jpeg");
+        var coverFilePath = await _songService.GetCoverPathBySongId(id);
+
+        if (string.IsNullOrEmpty(coverFilePath) || !System.IO.File.Exists(coverFilePath))
+        {
+            return NotFound("Cover image not found for this song.");
+        }
+
+        return PhysicalFile(coverFilePath, "image/jpeg");
     }
 
     [Authorize]

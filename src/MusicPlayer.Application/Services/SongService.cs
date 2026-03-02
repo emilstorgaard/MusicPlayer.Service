@@ -16,8 +16,8 @@ public class SongService
     public SongService(Settings settings, ISongRepository songRepository, IUserRepository userRepository)
     {
         _settings = settings;
-        Directory.CreateDirectory(_settings.UploadAudioFolderPath);
-        Directory.CreateDirectory(_settings.UploadImageFolderPath);
+        Directory.CreateDirectory(_settings.SongFolder);
+        Directory.CreateDirectory(_settings.ImageFolder);
         _songRepository = songRepository;
         _userRepository = userRepository;
     }
@@ -28,8 +28,7 @@ public class SongService
         if (song == null) throw new NotFoundException("Song not found.");
 
         if (string.IsNullOrEmpty(song?.AudioFilePath)) throw new NotFoundException("Song file path is missing.");
-
-        var audioFilePath = FileHelper.GetFullPath(song.AudioFilePath);
+        var audioFilePath = FileHelper.GetFullPath(Path.Combine(_settings.SongFolder, song.AudioFilePath));
 
         if (!File.Exists(audioFilePath)) throw new NotFoundException("Song file not found.");
 
@@ -37,13 +36,14 @@ public class SongService
         return fileStream;
     }
 
-    public string GetCoverImage(string imagePath)
+    public async Task<string> GetCoverPathBySongId(int songId)
     {
-        var coverImagePath = FileHelper.GetFullPath(imagePath);
+        var song = await _songRepository.GetSongById(songId);
 
-        if (!System.IO.File.Exists(coverImagePath)) throw new NotFoundException("Cover image not found.");
+        if (song == null || string.IsNullOrEmpty(song.CoverImagePath))
+            return null;
 
-        return coverImagePath;
+        return FileHelper.GetFullPath(Path.Combine(_settings.ImageFolder, song.CoverImagePath));
     }
 
     public async Task Upload(SongReqDto songDto, int userId)
@@ -57,10 +57,10 @@ public class SongService
         var existingSong = await _songRepository.GetExsistingSong(songDto.Title, songDto.Artist);
         if (existingSong != null) throw new ConflictException("A song with the same title and artist already exists.");
 
-        var audioFilePath = FileHelper.SaveFile(songDto.AudioFile, _settings.UploadAudioFolderPath);
+        var audioFilePath = FileHelper.SaveFile(songDto.AudioFile, _settings.SongFolder);
         var coverImagePath = songDto.CoverImageFile != null && FileHelper.IsValidFile(songDto.CoverImageFile, _settings.AllowedImageExtensions)
-            ? FileHelper.SaveFile(songDto.CoverImageFile, _settings.UploadImageFolderPath)
-            : FileHelper.GetDefaultCoverImagePath(_settings.UploadImageFolderPath);
+            ? FileHelper.SaveFile(songDto.CoverImageFile, _settings.ImageFolder)
+            : FileHelper.GetDefaultCoverImagePath(_settings.ImageFolder);
 
         var song = new Song
         {
@@ -116,9 +116,9 @@ public class SongService
         if (song == null) throw new NotFoundException("Song not found.");
         if (song.UserId != userId) throw new UnauthorizedException("You are not allowed to update this song.");
 
-        FileHelper.DeleteFile(song.CoverImagePath);
+        FileHelper.DeleteFile(_settings.ImageFolder, song.CoverImagePath);
 
-        song.CoverImagePath = FileHelper.GetDefaultCoverImagePath(_settings.UploadImageFolderPath);
+        song.CoverImagePath = FileHelper.GetDefaultCoverImagePath(_settings.ImageFolder);
         song.UpdatedAtUtc = DateTime.UtcNow;
 
         await _songRepository.UpdateSong(song);
@@ -135,14 +135,14 @@ public class SongService
 
         if (songDto.CoverImageFile != null && FileHelper.IsValidFile(songDto.CoverImageFile, _settings.AllowedImageExtensions))
         {
-            FileHelper.DeleteFile(song.CoverImagePath);
-            song.CoverImagePath = FileHelper.SaveFile(songDto.CoverImageFile, _settings.UploadImageFolderPath);
+            FileHelper.DeleteFile(_settings.ImageFolder, song.CoverImagePath);
+            song.CoverImagePath = FileHelper.SaveFile(songDto.CoverImageFile, _settings.ImageFolder);
         }
 
         if (songDto.AudioFile != null && FileHelper.IsValidFile(songDto.AudioFile, _settings.AllowedAudioExtensions))
         {
-            FileHelper.DeleteFile(song.AudioFilePath);
-            song.AudioFilePath = FileHelper.SaveFile(songDto.AudioFile, _settings.UploadAudioFolderPath);
+            FileHelper.DeleteFile(_settings.SongFolder, song.AudioFilePath);
+            song.AudioFilePath = FileHelper.SaveFile(songDto.AudioFile, _settings.SongFolder);
         }
 
         song.Title = songDto.Title;
@@ -159,8 +159,8 @@ public class SongService
         if (song == null) throw new NotFoundException("Song not found.");
         if (song.UserId != userId) throw new UnauthorizedException("You are not allowed to delete this song.");
 
-        FileHelper.DeleteFile(song.AudioFilePath);
-        FileHelper.DeleteFile(song.CoverImagePath);
+        FileHelper.DeleteFile(_settings.SongFolder, song.AudioFilePath);
+        FileHelper.DeleteFile(_settings.ImageFolder, song.CoverImagePath);
 
         await _songRepository.DeleteSong(song);
     }

@@ -37,11 +37,17 @@ public class PlaylistsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("cover/{*imagePath}")]
-    public IActionResult GetCoverImageById(string imagePath)
+    [HttpGet("{id:int}/cover")]
+    public async Task<IActionResult> GetCoverImageById(int id)
     {
-        var coverImagePath = _playlistService.GetCoverImagePath(imagePath);
-        return PhysicalFile(coverImagePath, "image/jpeg");
+        var coverFilePath = await _playlistService.GetCoverPathByPlaylistId(id);
+
+        if (string.IsNullOrEmpty(coverFilePath) || !System.IO.File.Exists(coverFilePath))
+        {
+            return NotFound("Cover image not found for this playlist.");
+        }
+
+        return PhysicalFile(coverFilePath, "image/jpeg");
     }
 
     [Authorize]

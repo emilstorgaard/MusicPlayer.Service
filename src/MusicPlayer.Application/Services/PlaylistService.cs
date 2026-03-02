@@ -20,7 +20,7 @@ public class PlaylistService
     public PlaylistService(Settings settings, SongService songService, IPlaylistRepository playlistRepository, IUserRepository userRepository, ISongRepository songRepository)
     {
         _settings = settings;
-        Directory.CreateDirectory(_settings.UploadImageFolderPath);
+        Directory.CreateDirectory(_settings.ImageFolder);
         _songService = songService;
         _playlistRepository = playlistRepository;
         _userRepository = userRepository;
@@ -48,13 +48,14 @@ public class PlaylistService
         return playlistDto;
     }
 
-    public string GetCoverImagePath(string imagePath)
+    public async Task<string> GetCoverPathByPlaylistId(int playlistId)
     {
-        var coverImagePath = FileHelper.GetFullPath("Media/Images/"+imagePath);
+        var playlist = await _playlistRepository.GetPlaylistById(playlistId);
 
-        if (!System.IO.File.Exists(coverImagePath)) throw new NotFoundException($"Cover image not found on path: {coverImagePath}.");
+        if (playlist == null || string.IsNullOrEmpty(playlist.CoverImagePath))
+            return null;
 
-        return coverImagePath;
+        return FileHelper.GetFullPath(Path.Combine(_settings.ImageFolder, playlist.CoverImagePath));
     }
 
     public async Task Add(PlaylistReqDto playlistDto, int userId)
@@ -68,8 +69,8 @@ public class PlaylistService
         if (existingPlaylist != null) throw new ConflictException("You already have a playlist with the same name.");
 
         var filePath = playlistDto.CoverImageFile != null && FileHelper.IsValidFile(playlistDto.CoverImageFile, _settings.AllowedImageExtensions)
-            ? FileHelper.SaveFile(playlistDto.CoverImageFile, _settings.UploadImageFolderPath)
-            : FileHelper.GetDefaultCoverImagePath(_settings.UploadImageFolderPath);
+            ? FileHelper.SaveFile(playlistDto.CoverImageFile, _settings.ImageFolder)
+            : FileHelper.GetDefaultCoverImagePath(_settings.ImageFolder);
 
         var playlist = new Playlist
         {
@@ -122,9 +123,9 @@ public class PlaylistService
         if (playlist == null) throw new NotFoundException("Playlist not found.");
         if (playlist.UserId != userId) throw new UnauthorizedException("You are not allowed to update this playlist.");
 
-        FileHelper.DeleteFile(playlist.CoverImagePath);
+        FileHelper.DeleteFile(_settings.ImageFolder ,playlist.CoverImagePath);
 
-        playlist.CoverImagePath = FileHelper.GetDefaultCoverImagePath(_settings.UploadImageFolderPath);
+        playlist.CoverImagePath = FileHelper.GetDefaultCoverImagePath(_settings.ImageFolder);
         playlist.UpdatedAtUtc = DateTime.UtcNow;
 
         await _playlistRepository.UpdatePlaylist(playlist);
@@ -141,8 +142,8 @@ public class PlaylistService
 
         if (playlistDto.CoverImageFile != null && FileHelper.IsValidFile(playlistDto.CoverImageFile, _settings.AllowedImageExtensions))
         {
-            FileHelper.DeleteFile(playlist.CoverImagePath);
-            playlist.CoverImagePath = FileHelper.SaveFile(playlistDto.CoverImageFile, _settings.UploadImageFolderPath);
+            FileHelper.DeleteFile(_settings.ImageFolder, playlist.CoverImagePath);
+            playlist.CoverImagePath = FileHelper.SaveFile(playlistDto.CoverImageFile, _settings.ImageFolder);
         }
 
         playlist.Name = playlistDto.Name;
@@ -157,7 +158,7 @@ public class PlaylistService
         if (playlist == null) throw new NotFoundException("Playlist not found.");
         if (playlist.UserId != userId) throw new UnauthorizedException("You are not allowed to delete this playlist.");
 
-        FileHelper.DeleteFile(playlist.CoverImagePath);
+        FileHelper.DeleteFile(_settings.ImageFolder, playlist.CoverImagePath);
 
         await _playlistRepository.DeletePlaylistSongs(id);
         await _playlistRepository.DeletePlaylist(playlist);

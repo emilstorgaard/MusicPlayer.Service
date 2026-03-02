@@ -54,8 +54,8 @@ public class Program
 
             var settings = new Settings
             {
-                UploadAudioFolderPath = configuration["FilePaths:AudioFolder"] ?? throw new NullReferenceException($"No {nameof(configuration)} found in configuration!"),
-                UploadImageFolderPath = configuration["FilePaths:ImageFolder"] ?? throw new NullReferenceException($"No {nameof(configuration)} found in configuration!"),
+                SongFolder = configuration["FilePaths:AudioFolder"] ?? throw new NullReferenceException($"No {nameof(configuration)} found in configuration!"),
+                ImageFolder = configuration["FilePaths:ImageFolder"] ?? throw new NullReferenceException($"No {nameof(configuration)} found in configuration!"),
                 AllowedAudioExtensions = configuration.GetSection("FileTypes:AudioExtensions").Get<string[]>() ?? throw new NullReferenceException($"No {nameof(configuration)} found in configuration!"),
                 AllowedImageExtensions = configuration.GetSection("FileTypes:ImageExtensions").Get<string[]>() ?? throw new NullReferenceException($"No {nameof(configuration)} found in configuration!"),
                 JwtSecret = configuration["JwtSettings:Secret"] ?? throw new NullReferenceException($"No {nameof(configuration)} found in configuration!"),

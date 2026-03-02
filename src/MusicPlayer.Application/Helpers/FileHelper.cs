@@ -18,14 +18,14 @@ public static class FileHelper
         var fullPath = GetFullPath(filePath);
         using var stream = new FileStream(fullPath, FileMode.Create);
         file.CopyTo(stream);
-        return filePath;
+        return fileName;
     }
 
-    public static void DeleteFile(string? filePath)
+    public static void DeleteFile(string mediaFolder, string? filePath)
     {
         if (string.IsNullOrEmpty(filePath)) return;
 
-        var fullFilePath = GetFullPath(filePath);
+        var fullFilePath = GetFullPath(Path.Combine(mediaFolder, filePath));
         if (!fullFilePath.EndsWith(DefaultCoverImage) && File.Exists(fullFilePath))
         {
             File.Delete(fullFilePath);

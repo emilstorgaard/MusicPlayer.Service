@@ -1,10 +1,10 @@
-﻿using MusicPlayer.Application.Dtos.Response;
-using MusicPlayer.Application.Dtos.Request;
+﻿using MusicPlayer.Application.Dtos.Request;
+using MusicPlayer.Application.Dtos.Response;
 using MusicPlayer.Application.Helpers;
 using MusicPlayer.Application.Mappers;
-using MusicPlayer.Domain.Interfaces;
-using MusicPlayer.Domain.Exceptions;
 using MusicPlayer.Domain.Entities;
+using MusicPlayer.Domain.Exceptions;
+using MusicPlayer.Domain.Interfaces;
 
 namespace MusicPlayer.Application.Services;
 

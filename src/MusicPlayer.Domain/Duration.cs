@@ -1,6 +1,6 @@
 ﻿namespace MusicPlayer.Domain;
 
-public record Duration // Vi bruger 'record' i C# for nem sammenligning og immutability
+public record Duration
 {
     public int Seconds { get; init; }
 
@@ -12,6 +12,5 @@ public record Duration // Vi bruger 'record' i C# for nem sammenligning og immut
         Seconds = seconds;
     }
 
-    // En hjælpe-metode til at vise det pænt
     public string ToFormattedString() => $"{Seconds / 60}:{Seconds % 60:D2}";
 }

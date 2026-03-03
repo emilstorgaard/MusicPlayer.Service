@@ -8,6 +8,7 @@ using MusicPlayer.Domain.Interfaces;
 using MusicPlayer.Infrastructure.Data;
 using MusicPlayer.Infrastructure.Repositories;
 using System.Text;
+using Scalar.AspNetCore;
 
 public class Program
 {
@@ -25,11 +26,6 @@ public class Program
                 );
         }
 
-        builder.Services.AddControllers();
-
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-
         ConfigureServices(builder);
         ConfigureAuthentication(builder);
         ConfigureCors(builder);
@@ -43,6 +39,11 @@ public class Program
     public static void ConfigureServices(WebApplicationBuilder builder)
     {
         builder.Services.AddControllers();
+
+        builder.Services.AddOpenApi(options =>
+        {
+            options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+        });
 
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new NullReferenceException("Database connection string is not configured.");
 
@@ -121,8 +122,8 @@ public class Program
     {
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.MapOpenApi();
+            app.MapScalarApiReference();
         }
 
         app.UseHsts();

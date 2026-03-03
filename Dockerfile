@@ -1,17 +1,17 @@
-# Base stage - Brug .NET 10
+# Base stage - Use .NET 10
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS base
 USER app
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
-# Build stage - Brug .NET 10 SDK
+# Build stage - Use .NET 10 SDK
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 
-# 1. Kopier .csproj filer (Sørg for at stierne matcher din mappestruktur)
-# Jeg antager her, at din Dockerfile ligger i "src" eller roden.
+# 1. Copy .csproj files
+# Dockerfile is located in root.
 COPY ["src/MusicPlayer.Api/MusicPlayer.Api.csproj", "src/MusicPlayer.Api/"]
 COPY ["src/MusicPlayer.Domain/MusicPlayer.Domain.csproj", "src/MusicPlayer.Domain/"]
 COPY ["src/MusicPlayer.Application/MusicPlayer.Application.csproj", "src/MusicPlayer.Application/"]
@@ -20,10 +20,10 @@ COPY ["src/MusicPlayer.Infrastructure/MusicPlayer.Infrastructure.csproj", "src/M
 # 2. Restore
 RUN dotnet restore "src/MusicPlayer.Api/MusicPlayer.Api.csproj"
 
-# 3. Kopier resten af koden
+# 3. Copy the rest of the code
 COPY . .
 
-# 4. Build - Vi går ind i API mappen
+# 4. Build the API
 WORKDIR "/src/src/MusicPlayer.Api"
 RUN dotnet build "MusicPlayer.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
@@ -35,10 +35,10 @@ RUN dotnet publish "MusicPlayer.Api.csproj" -c $BUILD_CONFIGURATION -o /app/publ
 # Final stage
 FROM base AS final
 WORKDIR /app
-# Kopier de publicerede filer fra publish-stadiet
+# Copy the published files
 COPY --from=publish /app/publish .
 
-# Sørg for at Media mapperne findes i containeren, så din FileHelper ikke fejler
+# Make sure Media folders exists
 USER root
 RUN mkdir -p /app/Media/Images && mkdir -p /app/Media/Songs && chown -R app:app /app/Media
 USER app

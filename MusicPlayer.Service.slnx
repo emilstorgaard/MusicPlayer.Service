@@ -12,4 +12,7 @@
     <Project Path="src/MusicPlayer.Domain/MusicPlayer.Domain.csproj" />
     <Project Path="src/MusicPlayer.Infrastructure/MusicPlayer.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MusicPlayer.Application.Tests/MusicPlayer.Application.Tests.csproj" />
+  </Folder>
 </Solution>

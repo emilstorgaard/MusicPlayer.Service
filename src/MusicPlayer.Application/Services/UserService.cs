@@ -1,6 +1,7 @@
 ﻿using MusicPlayer.Application.Dtos.Request;
 using MusicPlayer.Application.Dtos.Response;
 using MusicPlayer.Application.Helpers;
+using MusicPlayer.Application.Interfaces;
 using MusicPlayer.Application.Mappers;
 using MusicPlayer.Domain.Entities;
 using MusicPlayer.Domain.Exceptions;
@@ -8,7 +9,7 @@ using MusicPlayer.Domain.Interfaces;
 
 namespace MusicPlayer.Application.Services;
 
-public class UserService
+public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPlaylistRepository _playlistRepository;

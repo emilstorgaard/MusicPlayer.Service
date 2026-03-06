@@ -1,8 +1,9 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MusicPlayer.Application.Dtos.Request;
+using MusicPlayer.Api.Mappers;
+using MusicPlayer.Api.Models;
 using MusicPlayer.Application.Helpers;
-using MusicPlayer.Application.Services;
+using MusicPlayer.Application.Interfaces;
 
 namespace MusicPlayer.Api.Controllers;
 
@@ -10,9 +11,9 @@ namespace MusicPlayer.Api.Controllers;
 [ApiController]
 public class SongsController : ControllerBase
 {
-    private readonly SongService _songService;
+    private readonly ISongService _songService;
 
-    public SongsController(SongService songService)
+    public SongsController(ISongService songService)
     {
         _songService = songService;
     }
@@ -39,11 +40,13 @@ public class SongsController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> UploadSong([FromForm] SongReqDto songDto)
+    public async Task<IActionResult> UploadSong([FromForm] SongReqDtoWeb webDto)
     {
         int userId = UserHelper.GetUserId(User);
 
-        await _songService.Upload(songDto, userId);
+        var applicationDto = SongWebMapper.MapToApplicationDto(webDto);
+
+        await _songService.Upload(applicationDto, userId);
         return StatusCode(201, "Song was successfully uploaded.");
     }
 
@@ -79,11 +82,13 @@ public class SongsController : ControllerBase
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> UpdateSong(int id, [FromForm] SongReqDto songDto)
+    public async Task<IActionResult> UpdateSong(int id, [FromForm] SongReqDtoWeb webDto)
     {
         int userId = UserHelper.GetUserId(User);
 
-        await _songService.Update(id, songDto, userId);
+        var applicationDto = SongWebMapper.MapToApplicationDto(webDto);
+
+        await _songService.Update(id, applicationDto, userId);
         return Ok("Song was successfully updated.");
     }
 

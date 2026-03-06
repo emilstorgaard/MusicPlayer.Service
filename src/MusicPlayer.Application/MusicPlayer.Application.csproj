@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MusicPlayer.Domain\MusicPlayer.Domain.csproj" />
-	<FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
 </Project>

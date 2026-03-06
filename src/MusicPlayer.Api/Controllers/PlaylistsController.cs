@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using MusicPlayer.Application.Dtos.Request;
+using MusicPlayer.Api.Mappers;
+using MusicPlayer.Api.Models;
 using MusicPlayer.Application.Dtos.Response;
 using MusicPlayer.Application.Helpers;
-using MusicPlayer.Application.Services;
+using MusicPlayer.Application.Interfaces;
 
 namespace MusicPlayer.Api.Controllers;
 
@@ -11,9 +12,9 @@ namespace MusicPlayer.Api.Controllers;
 [ApiController]
 public class PlaylistsController : ControllerBase
 {
-    private readonly PlaylistService _playlistService;
+    private readonly IPlaylistService _playlistService;
 
-    public PlaylistsController(PlaylistService playlistService)
+    public PlaylistsController(IPlaylistService playlistService)
     {
         _playlistService = playlistService;
     }
@@ -52,11 +53,13 @@ public class PlaylistsController : ControllerBase
 
     [Authorize]
     [HttpPost]
-    public async Task<IActionResult> Add([FromForm] PlaylistReqDto playlistDto)
+    public async Task<IActionResult> Add([FromForm] PlaylistReqDtoWeb webDto)
     {
         int userId = UserHelper.GetUserId(User);
 
-        await _playlistService.Add(playlistDto, userId);
+        var applicationDto = PlaylistWebMapper.MapToApplicationDto(webDto);
+
+        await _playlistService.Add(applicationDto, userId);
         return StatusCode(201, "Playlist was successfully added");
     }
 
@@ -82,11 +85,13 @@ public class PlaylistsController : ControllerBase
 
     [Authorize]
     [HttpPut("{id:int}")]
-    public async Task<IActionResult> Update(int id, [FromForm] PlaylistReqDto playlistDto)
+    public async Task<IActionResult> Update(int id, [FromForm] PlaylistReqDtoWeb webDto)
     {
         int userId = UserHelper.GetUserId(User);
 
-        await _playlistService.Update(id, playlistDto, userId);
+        var applicationDto = PlaylistWebMapper.MapToApplicationDto(webDto);
+
+        await _playlistService.Update(id, applicationDto, userId);
         return Ok("Playlist was successfully updated");
     }
 

@@ -1,13 +1,14 @@
 ﻿using MusicPlayer.Application.Configurations;
 using MusicPlayer.Application.Dtos.Request;
 using MusicPlayer.Application.Helpers;
+using MusicPlayer.Application.Interfaces;
 using MusicPlayer.Domain.Entities;
 using MusicPlayer.Domain.Exceptions;
 using MusicPlayer.Domain.Interfaces;
 
 namespace MusicPlayer.Application.Services;
 
-public class SongService
+public class SongService : ISongService
 {
     private readonly Settings _settings;
     private readonly ISongRepository _songRepository;
@@ -48,8 +49,7 @@ public class SongService
 
     public async Task Upload(SongReqDto songDto, int userId)
     {
-        if (songDto == null || songDto.AudioFile == null || !FileHelper.IsValidFile(songDto.AudioFile, _settings.AllowedAudioExtensions))
-            throw new BadRequestException("Invalid song data.");
+        if (songDto == null) throw new BadRequestException("Invalid song data.");
 
         var user = await _userRepository.GetUserById(userId);
         if (user == null) throw new NotFoundException("User not found.");
@@ -57,10 +57,24 @@ public class SongService
         var existingSong = await _songRepository.GetExsistingSong(songDto.Title, songDto.Artist);
         if (existingSong != null) throw new ConflictException("A song with the same title and artist already exists.");
 
-        var audioFilePath = FileHelper.SaveFile(songDto.AudioFile, _settings.SongFolder);
-        var coverImagePath = songDto.CoverImageFile != null && FileHelper.IsValidFile(songDto.CoverImageFile, _settings.AllowedImageExtensions)
-            ? FileHelper.SaveFile(songDto.CoverImageFile, _settings.ImageFolder)
-            : FileHelper.GetDefaultCoverImagePath(_settings.ImageFolder);
+        if (songDto.AudioStream == null || !FileHelper.IsValidExtension(songDto.AudioFileName, _settings.AllowedAudioExtensions))
+            throw new BadRequestException("Invalid or missing audio file.");
+
+        var audioFilePath = await FileHelper.SaveFile(songDto.AudioStream, songDto.AudioFileName!, _settings.SongFolder);
+
+        string coverImagePath;
+        if (songDto.CoverImageStream != null && FileHelper.IsValidExtension(songDto.CoverImageFileName, _settings.AllowedImageExtensions))
+        {
+            coverImagePath = await FileHelper.SaveFile(
+                songDto.CoverImageStream,
+                songDto.CoverImageFileName!,
+                _settings.ImageFolder);
+        }
+        else
+        {
+            coverImagePath = FileHelper.GetDefaultCoverImagePath(_settings.ImageFolder);
+        }
+
 
         var song = new Song
         {
@@ -133,16 +147,16 @@ public class SongService
         var existingSong = await _songRepository.GetExsistingSong(songDto.Title, songDto.Artist);
         if (existingSong != null && existingSong.Id != id) throw new NotFoundException("A song with the same title and artist already exists.");
 
-        if (songDto.CoverImageFile != null && FileHelper.IsValidFile(songDto.CoverImageFile, _settings.AllowedImageExtensions))
+        if (songDto.CoverImageStream != null && FileHelper.IsValidExtension(songDto.CoverImageFileName, _settings.AllowedImageExtensions))
         {
             FileHelper.DeleteFile(_settings.ImageFolder, song.CoverImagePath);
-            song.CoverImagePath = FileHelper.SaveFile(songDto.CoverImageFile, _settings.ImageFolder);
+            song.CoverImagePath = await FileHelper.SaveFile(songDto.CoverImageStream, songDto.CoverImageFileName, _settings.ImageFolder);
         }
 
-        if (songDto.AudioFile != null && FileHelper.IsValidFile(songDto.AudioFile, _settings.AllowedAudioExtensions))
+        if (songDto.AudioStream != null && FileHelper.IsValidExtension(songDto.AudioFileName, _settings.AllowedAudioExtensions))
         {
             FileHelper.DeleteFile(_settings.SongFolder, song.AudioFilePath);
-            song.AudioFilePath = FileHelper.SaveFile(songDto.AudioFile, _settings.SongFolder);
+            song.AudioFilePath = await FileHelper.SaveFile(songDto.AudioStream, songDto.AudioFileName, _settings.SongFolder);
         }
 
         song.Title = songDto.Title;

@@ -2,6 +2,7 @@
 using MusicPlayer.Application.Dtos.Request;
 using MusicPlayer.Application.Dtos.Response;
 using MusicPlayer.Application.Helpers;
+using MusicPlayer.Application.Interfaces;
 using MusicPlayer.Application.Mappers;
 using MusicPlayer.Domain.Entities;
 using MusicPlayer.Domain.Exceptions;
@@ -9,19 +10,17 @@ using MusicPlayer.Domain.Interfaces;
 
 namespace MusicPlayer.Application.Services;
 
-public class PlaylistService
+public class PlaylistService : IPlaylistService
 {
     private readonly Settings _settings;
-    private readonly SongService _songService;
     private readonly IPlaylistRepository _playlistRepository;
     private readonly IUserRepository _userRepository;
     private readonly ISongRepository _songRepository;
 
-    public PlaylistService(Settings settings, SongService songService, IPlaylistRepository playlistRepository, IUserRepository userRepository, ISongRepository songRepository)
+    public PlaylistService(Settings settings, IPlaylistRepository playlistRepository, IUserRepository userRepository, ISongRepository songRepository)
     {
         _settings = settings;
         Directory.CreateDirectory(_settings.ImageFolder);
-        _songService = songService;
         _playlistRepository = playlistRepository;
         _userRepository = userRepository;
         _songRepository = songRepository;
@@ -58,24 +57,24 @@ public class PlaylistService
         return FileHelper.GetFullPath(Path.Combine(_settings.ImageFolder, playlist.CoverImagePath));
     }
 
-    public async Task Add(PlaylistReqDto playlistDto, int userId)
+    public async Task Add(PlaylistReqDto playlistReqDto, int userId)
     {
-        if (playlistDto == null) throw new ValidationException("Playlist data is missing.");
+        if (playlistReqDto == null) throw new ValidationException("Playlist data is missing.");
 
         var user = await _userRepository.GetUserById(userId);
         if (user == null) throw new UnauthorizedException("Invalid user ID.");
 
-        var existingPlaylist = await _playlistRepository.GetExistingPlaylist(playlistDto.Name, userId);
+        var existingPlaylist = await _playlistRepository.GetExistingPlaylist(playlistReqDto.Name, userId);
         if (existingPlaylist != null) throw new ConflictException("You already have a playlist with the same name.");
 
-        var filePath = playlistDto.CoverImageFile != null && FileHelper.IsValidFile(playlistDto.CoverImageFile, _settings.AllowedImageExtensions)
-            ? FileHelper.SaveFile(playlistDto.CoverImageFile, _settings.ImageFolder)
+        var filePath = playlistReqDto.CoverImageStream != null
+            ? await FileHelper.SaveFile(playlistReqDto.CoverImageStream, playlistReqDto.FileName, _settings.ImageFolder)
             : FileHelper.GetDefaultCoverImagePath(_settings.ImageFolder);
 
         var playlist = new Playlist
         {
             UserId = userId,
-            Name = playlistDto.Name,
+            Name = playlistReqDto.Name,
             CoverImagePath = filePath,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
@@ -133,6 +132,9 @@ public class PlaylistService
 
     public async Task Update(int id, PlaylistReqDto playlistDto, int userId)
     {
+        var user = await _userRepository.GetUserById(userId);
+        if (user == null) throw new UnauthorizedException("Invalid user ID.");
+
         var playlist = await _playlistRepository.GetPlaylistById(id);
         if (playlist == null) throw new NotFoundException("Playlist was not found.");
         if (playlist.UserId != userId) throw new UnauthorizedException("You are not allowed to update this playlist.");
@@ -140,10 +142,10 @@ public class PlaylistService
         var existingPlaylist = await _playlistRepository.GetExistingPlaylist(playlistDto.Name, userId);
         if (existingPlaylist != null && existingPlaylist.Id != id) throw new ConflictException("You already have a playlist with the same name.");
 
-        if (playlistDto.CoverImageFile != null && FileHelper.IsValidFile(playlistDto.CoverImageFile, _settings.AllowedImageExtensions))
+        if (playlistDto.CoverImageStream != null && FileHelper.IsValidExtension(playlistDto.FileName, _settings.AllowedImageExtensions))
         {
             FileHelper.DeleteFile(_settings.ImageFolder, playlist.CoverImagePath);
-            playlist.CoverImagePath = FileHelper.SaveFile(playlistDto.CoverImageFile, _settings.ImageFolder);
+            playlist.CoverImagePath = await FileHelper.SaveFile(playlistDto.CoverImageStream, playlistDto.FileName, _settings.ImageFolder);
         }
 
         playlist.Name = playlistDto.Name;

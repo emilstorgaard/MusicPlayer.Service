@@ -1,23 +1,30 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace MusicPlayer.Application.Helpers;
+﻿namespace MusicPlayer.Application.Helpers;
 
 public static class FileHelper
 {
     private const string DefaultCoverImage = "default.jpg";
 
-    public static bool IsValidFile(IFormFile file, string[] allowedExtensions)
+    public static bool IsValidExtension(string? fileName, string[] allowedExtensions)
     {
-        return file.Length == 0 ? false : allowedExtensions.Contains(Path.GetExtension(file.FileName).ToLower());
+        if (string.IsNullOrWhiteSpace(fileName)) return false;
+
+        var extension = Path.GetExtension(fileName).ToLower();
+        return allowedExtensions.Contains(extension);
     }
 
-    public static string SaveFile(IFormFile file, string folderPath)
+    public static async Task<string> SaveFile(Stream fileStream, string originalFileName, string folderPath)
     {
-        var fileName = Guid.NewGuid() + Path.GetExtension(file.FileName).ToLower();
+        var fileName = Guid.NewGuid() + Path.GetExtension(originalFileName).ToLower();
         var filePath = Path.Combine(folderPath, fileName);
         var fullPath = GetFullPath(filePath);
-        using var stream = new FileStream(fullPath, FileMode.Create);
-        file.CopyTo(stream);
+
+        Directory.CreateDirectory(Path.GetDirectoryName(fullPath)!);
+        
+        using (var destinationStream = new FileStream(fullPath, FileMode.Create))
+        {
+            await fileStream.CopyToAsync(destinationStream);
+        }
+
         return fileName;
     }
 

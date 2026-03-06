@@ -1,16 +1,17 @@
 ﻿using MusicPlayer.Application.Dtos.Response;
 using MusicPlayer.Application.Helpers;
+using MusicPlayer.Application.Interfaces;
 using MusicPlayer.Domain.Exceptions;
 using MusicPlayer.Domain.Interfaces;
 
 namespace MusicPlayer.Application.Services;
 
-public class AuthService
+public class AuthService : IAuthService
 {
     private readonly IUserRepository _userRepository;
-    private readonly JwtTokenService _tokenService;
+    private readonly IJwtTokenService _tokenService;
 
-    public AuthService(IUserRepository userRepository, JwtTokenService tokenService)
+    public AuthService(IUserRepository userRepository, IJwtTokenService tokenService)
     {
         _userRepository = userRepository;
         _tokenService = tokenService;

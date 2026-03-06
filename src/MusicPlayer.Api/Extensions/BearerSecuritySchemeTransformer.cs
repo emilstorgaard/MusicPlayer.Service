@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
 
+namespace MusicPlayer.Api.Extensions;
+
 internal sealed class BearerSecuritySchemeTransformer(
     IAuthenticationSchemeProvider authenticationSchemeProvider
 ) : IOpenApiDocumentTransformer
@@ -18,7 +20,6 @@ internal sealed class BearerSecuritySchemeTransformer(
 
         document.Components ??= new OpenApiComponents();
 
-        // IDictionary<string, IOpenApiSecurityScheme> i v2
         document.Components.SecuritySchemes ??=
             new Dictionary<string, IOpenApiSecurityScheme>(StringComparer.Ordinal);
 
@@ -31,7 +32,6 @@ internal sealed class BearerSecuritySchemeTransformer(
             Description = "Indsæt dit JWT token"
         };
 
-        // Tilføj security requirement på hvert enkelt endpoint
         foreach (var path in document.Paths.Values)
         {
             foreach (var operation in path.Operations.Values)
@@ -39,7 +39,6 @@ internal sealed class BearerSecuritySchemeTransformer(
                 operation.Security ??= new List<OpenApiSecurityRequirement>();
                 operation.Security.Add(new OpenApiSecurityRequirement
                 {
-                    // OpenApiSecuritySchemeReference erstatter den gamle Reference-property
                     { new OpenApiSecuritySchemeReference("Bearer", document), [] }
                 });
             }

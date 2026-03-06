@@ -1,10 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-
-namespace MusicPlayer.Application.Dtos.Request;
+﻿namespace MusicPlayer.Application.Dtos.Request;
 
 public class PlaylistReqDto
 {
     public required string Name { get; set; }
-    public IFormFile? CoverImageFile { get; set; }
+    public Stream? CoverImageStream { get; set; }
+    public string? FileName { get; set; }
 }
 

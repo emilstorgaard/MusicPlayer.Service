@@ -9,6 +9,8 @@ using MusicPlayer.Infrastructure.Data;
 using MusicPlayer.Infrastructure.Repositories;
 using System.Text;
 using Scalar.AspNetCore;
+using MusicPlayer.Api.Extensions;
+using MusicPlayer.Application.Interfaces;
 
 public class Program
 {
@@ -72,12 +74,12 @@ public class Program
         builder.Services.AddScoped<ISongRepository, SongRepository>();
         builder.Services.AddScoped<ISearchRepository, SearchRepository>();
 
-        builder.Services.AddScoped<AuthService>();
-        builder.Services.AddScoped<JwtTokenService>();
-        builder.Services.AddScoped<UserService>();
-        builder.Services.AddScoped<PlaylistService>();
-        builder.Services.AddScoped<SongService>();
-        builder.Services.AddScoped<SearchService>();
+        builder.Services.AddScoped<IAuthService, AuthService>();
+        builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+        builder.Services.AddScoped<IUserService, UserService>();
+        builder.Services.AddScoped<IPlaylistService, PlaylistService>();
+        builder.Services.AddScoped<ISongService, SongService>();
+        builder.Services.AddScoped<ISearchService, SearchService>();
     }
 
     public static void ConfigureAuthentication(WebApplicationBuilder builder)

@@ -1,11 +1,12 @@
 ﻿using MusicPlayer.Application.Dtos.Response;
+using MusicPlayer.Application.Interfaces;
 using MusicPlayer.Application.Mappers;
 using MusicPlayer.Domain.Exceptions;
 using MusicPlayer.Domain.Interfaces;
 
 namespace MusicPlayer.Application.Services;
 
-public class SearchService
+public class SearchService : ISearchService
 {
     private readonly ISearchRepository _searchRepository;
     private readonly IPlaylistRepository _playlistRepository;
